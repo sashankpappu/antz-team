@@ -57,6 +57,13 @@ export interface BrainPage {
   body: string;
 }
 
+/** A dream-cycle finding: notes that disagree, or knowledge going stale. */
+export interface BrainFlag {
+  kind: "contradiction" | "staleness";
+  summary: string;
+  pageSlugs: string[];
+}
+
 export interface PutPageInput {
   title: string;
   body: string;
@@ -78,4 +85,6 @@ export interface GbrainClient {
   think(scope: BrainScopeCtx, question: string, opts?: { model?: string }): Promise<ThinkResult>;
   putPage(scope: BrainScopeCtx, input: PutPageInput): Promise<BrainPage>;
   getPage(scope: BrainScopeCtx, slug: string): Promise<BrainPage | null>;
+  /** Dream-cycle findings: contradictions + staleness (§4 Briefing flags). */
+  flags(scope: BrainScopeCtx): Promise<BrainFlag[]>;
 }

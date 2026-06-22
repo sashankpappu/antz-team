@@ -7,12 +7,12 @@ decision — and let it flow: capture → the brain reads it first → triage (k
 do) → either it rests in memory and resurfaces later, or it spins a sprint that
 ships and writes the result back into the brain.
 
-> **Status:** Phase 3 (Decisions) complete. Sprints pause at human-only forks
-> (taste / scope / risk / security); the Decisions surface shows the crew's
-> recommendation with one-tap Approve / Adjust / Reject, and resolving resumes
-> the sprint. Gold appears only here. Earlier phases: brain-first recall
-> (Capture + Brain), live 7-stage Execute board, the app shell + auth. See the
-> build plan in [`CLAUDE.md`](./CLAUDE.md).
+> **Status:** Phase 4 (Dream + Briefing) complete. A one-screen morning briefing
+> shows what shipped / is running / is holding, plus "what I'd watch"
+> (contradiction + staleness flags from the dream cycle); run the dream cycle on
+> demand. Earlier phases: human-only Decision forks, live 7-stage Execute board,
+> brain-first recall (Capture + Brain), the app shell + auth. See the build plan
+> in [`CLAUDE.md`](./CLAUDE.md).
 
 ## The six surfaces (§4)
 
@@ -147,6 +147,20 @@ behind the same `SprintEngine` interface, gated on `GSTACK_LIVE=true`.
 3. Start a security-flavored sprint (e.g. *"Rotate the leaked auth token"*). Its
    fork is a *security* decision explaining the risk and the patch; approve it
    and the sprint continues.
+
+## CEO demo script — Phase 4
+
+> Goal: "I open Vidur at 7am and read a one-screen briefing of what shipped,
+> what's stuck, and what needs me. It flags that two notes disagree."
+
+1. Open **Briefing**. The top row counts shipped / running / holding / captured.
+2. Read the sections: **Shipped**, **Running**, **Holding — needs you** (blocked
+   sprints + open forks), and **What I'd watch** — contradiction and staleness
+   flags from the brain's dream cycle (e.g. "Acme pricing was discussed verbally,
+   but the deal note says pricing isn't finalized — these disagree").
+3. Tap **Run dream cycle now** to refresh enrichment; the last-run time updates.
+   The nightly cron that runs this automatically becomes visible in Govern
+   (Phase 5).
 
 ## Running the real brain (gbrain)
 

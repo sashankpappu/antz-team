@@ -2,6 +2,7 @@ import type { Session } from "next-auth";
 import { MemoryBrain } from "./memory-client";
 import { McpBrain } from "./mcp-client";
 import type {
+  BrainFlag,
   BrainPage,
   BrainScopeCtx,
   GbrainClient,
@@ -10,7 +11,7 @@ import type {
   ThinkResult,
 } from "./types";
 
-export type { BrainScopeCtx, Citation, SearchHit, ThinkResult, BrainPage } from "./types";
+export type { BrainScopeCtx, Citation, SearchHit, ThinkResult, BrainPage, BrainFlag } from "./types";
 
 /**
  * Derive a brain scope from the signed-in session (§5). Every brain read runs
@@ -74,6 +75,14 @@ class DegradingBrain implements GbrainClient {
       return await this.live.getPage(scope, slug);
     } catch {
       return this.fallback.getPage(scope, slug);
+    }
+  }
+
+  async flags(scope: BrainScopeCtx): Promise<BrainFlag[]> {
+    try {
+      return await this.live.flags(scope);
+    } catch {
+      return this.fallback.flags(scope);
     }
   }
 }

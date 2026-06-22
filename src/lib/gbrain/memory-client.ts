@@ -1,4 +1,5 @@
 import type {
+  BrainFlag,
   BrainPage,
   BrainScopeCtx,
   GbrainClient,
@@ -176,5 +177,29 @@ export class MemoryBrain implements GbrainClient {
     if (!page) return null;
     if (!scope.readSources.includes(page.source)) return null; // scope-enforced
     return page;
+  }
+
+  async flags(scope: BrainScopeCtx): Promise<BrainFlag[]> {
+    const readable = new Set(this.readable(scope).map((p) => p.slug));
+    const out: BrainFlag[] = [];
+    // Seeded contradiction: the deal page implies a price was discussed, while
+    // it also says pricing isn't finalized — worth a human glance.
+    if (readable.has("deals/acme-partnership") && readable.has("companies/acme-corp")) {
+      out.push({
+        kind: "contradiction",
+        summary:
+          "Acme pricing was discussed verbally, but the deal note also says pricing is not finalized — these disagree.",
+        pageSlugs: ["deals/acme-partnership", "companies/acme-corp"],
+      });
+    }
+    // Seeded staleness: Alice's authority hasn't been confirmed for a while.
+    if (readable.has("people/alice-johnson")) {
+      out.push({
+        kind: "staleness",
+        summary: "Alice Johnson's decision authority is still unconfirmed — the note may be going stale.",
+        pageSlugs: ["people/alice-johnson"],
+      });
+    }
+    return out;
   }
 }

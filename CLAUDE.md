@@ -89,8 +89,11 @@ role-playing a non-technical exec, completing the scenario with zero terminal us
   Reject; resolving resumes the sprint; nav gold badge = open fork count; forks
   scoped per user. (Gold appears only here.) *CEO: two finalists waiting → tap →
   ships; a security fork in plain English → approve the patch.*
-- **Phase 4 — Dream + Briefing.** Nightly enrichment; morning briefing;
-  contradiction / staleness flags.
+- **Phase 4 — Dream + Briefing** ✅ One-screen briefing (shipped / running /
+  holding / what I'd watch) composed from live sprint + decision state + brain
+  flags; gbrain `flags()` surfaces contradictions + staleness (find_contradictions
+  on the live client); dream cycle run-now + last-run/next-scheduled. *CEO: 7am
+  one-screen read; it flags that two notes disagree.*
 - **Phase 5 — Graph + Govern.** Knowledge-graph view; team scoping; audit /
   citations; cron visibility. Fuzz-test zero cross-user leaks.
 

@@ -38,6 +38,8 @@ export interface AuditEntry {
 interface Stores {
   inbox: InboxItem[];
   audit: AuditEntry[];
+  /** Last dream-cycle (nightly enrichment) run, per user. */
+  dreamRuns: Record<string, string>;
 }
 
 declare global {
@@ -46,8 +48,18 @@ declare global {
 }
 
 function stores(): Stores {
-  if (!globalThis.__vidurStore) globalThis.__vidurStore = { inbox: [], audit: [] };
+  if (!globalThis.__vidurStore) globalThis.__vidurStore = { inbox: [], audit: [], dreamRuns: {} };
   return globalThis.__vidurStore;
+}
+
+export function getDreamRun(userId: string): string | null {
+  return stores().dreamRuns[userId] ?? null;
+}
+
+export function recordDreamRun(userId: string): string {
+  const at = new Date().toISOString();
+  stores().dreamRuns[userId] = at;
+  return at;
 }
 
 export function hashContent(userId: string, text: string): string {

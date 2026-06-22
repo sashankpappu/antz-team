@@ -1,6 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import type {
+  BrainFlag,
   BrainPage,
   BrainScopeCtx,
   Citation,
@@ -160,5 +161,26 @@ export class McpBrain implements GbrainClient {
     } catch {
       return null;
     }
+  }
+
+  async flags(scope: BrainScopeCtx): Promise<BrainFlag[]> {
+    // gbrain exposes `find_contradictions`; staleness via `find_anomalies`.
+    const out: BrainFlag[] = [];
+    try {
+      const c = await this.callOp<{ contradictions?: Array<{ summary?: string; page_slugs?: string[] }> }>(
+        "find_contradictions",
+        { sources: scope.readSources },
+      );
+      for (const item of c.contradictions ?? []) {
+        out.push({
+          kind: "contradiction",
+          summary: String(item.summary ?? "Two notes disagree."),
+          pageSlugs: item.page_slugs ?? [],
+        });
+      }
+    } catch {
+      /* contradictions unavailable */
+    }
+    return out;
   }
 }
