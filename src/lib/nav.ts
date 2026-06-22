@@ -5,10 +5,14 @@ import {
   GitFork,
   Sunrise,
   ShieldCheck,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 
-/** The six surfaces — §4 of the brief. This is the complete v1 feature set. */
+/**
+ * The six surfaces (§4) + an in-app Guide. The six are the v1 feature set;
+ * Guide is the "how to use Vidur" reference, not an engine.
+ */
 export interface NavItem {
   href: string;
   label: string;
@@ -24,6 +28,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/decisions", label: "Decisions", blurb: "Forks that need you", icon: GitFork },
   { href: "/briefing", label: "Briefing", blurb: "Dream & morning brief", icon: Sunrise },
   { href: "/govern", label: "Govern", blurb: "Team, audit & config", icon: ShieldCheck },
+  { href: "/guide", label: "Guide", blurb: "How to use Vidur", icon: BookOpen },
 ];
 
 /** Active when the path equals the item or is nested beneath it. */

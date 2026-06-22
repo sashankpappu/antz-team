@@ -16,7 +16,8 @@ export function BottomTabs({ needsCount = 0 }: BottomTabsProps) {
   return (
     <nav
       aria-label="Primary"
-      className="md:hidden fixed inset-x-0 bottom-0 z-20 grid grid-cols-6 border-t border-line bg-card/95 backdrop-blur"
+      className="md:hidden fixed inset-x-0 bottom-0 z-20 grid border-t border-line bg-card/95 backdrop-blur"
+      style={{ gridTemplateColumns: `repeat(${NAV_ITEMS.length}, minmax(0, 1fr))` }}
     >
       {NAV_ITEMS.map((item) => {
         const active = isActive(pathname, item.href);
@@ -28,15 +29,17 @@ export function BottomTabs({ needsCount = 0 }: BottomTabsProps) {
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "relative flex flex-col items-center gap-1 py-2.5 text-[11px]",
+              "flex flex-col items-center gap-1 py-2.5 text-[10px]",
               active ? "text-accent-deep" : "text-muted",
             )}
           >
-            <Icon className="h-5 w-5" aria-hidden />
+            <span className="relative">
+              <Icon className="h-5 w-5" aria-hidden />
+              {showNeeds && (
+                <span className="absolute -right-1.5 -top-1 h-2 w-2 rounded-full bg-needs" aria-hidden />
+              )}
+            </span>
             <span>{item.label}</span>
-            {showNeeds && (
-              <span className="absolute right-[22%] top-1.5 h-2 w-2 rounded-full bg-needs" aria-hidden />
-            )}
           </Link>
         );
       })}
