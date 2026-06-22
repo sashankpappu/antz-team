@@ -1,0 +1,33 @@
+import {
+  Inbox,
+  Brain,
+  GitBranch,
+  GitFork,
+  Sunrise,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
+
+/** The six surfaces — §4 of the brief. This is the complete v1 feature set. */
+export interface NavItem {
+  href: string;
+  label: string;
+  /** One-line job of the surface (each screen does one thing). */
+  blurb: string;
+  icon: LucideIcon;
+}
+
+export const NAV_ITEMS: NavItem[] = [
+  { href: "/", label: "Capture", blurb: "Hand it to Vidur", icon: Inbox },
+  { href: "/brain", label: "Brain", blurb: "Ask what we know", icon: Brain },
+  { href: "/execute", label: "Execute", blurb: "Sprints in motion", icon: GitBranch },
+  { href: "/decisions", label: "Decisions", blurb: "Forks that need you", icon: GitFork },
+  { href: "/briefing", label: "Briefing", blurb: "Dream & morning brief", icon: Sunrise },
+  { href: "/govern", label: "Govern", blurb: "Team, audit & config", icon: ShieldCheck },
+];
+
+/** Active when the path equals the item or is nested beneath it. */
+export function isActive(pathname: string, href: string): boolean {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}

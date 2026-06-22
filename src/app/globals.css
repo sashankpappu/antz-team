@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Vidur design tokens — §6. Calm by default; gold is reserved for forks. */
+:root {
+  --paper: #f7f7f4;
+  --card: #ffffff;
+  --ink: #17181c;
+  --muted: #71757e;
+  --line: #e7e6e1;
+  --accent: #3b40c9;
+  --accent-deep: #2e329f;
+  --accent-tint: #edeefb;
+  --needs-you: #e0890a;
+  --shipped: #0e9f6e;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-feature-settings: "cv05", "ss01";
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Hairline borders + generous whitespace are the default, not the exception. */
+  ::selection {
+    background: var(--accent-tint);
+    color: var(--accent-deep);
+  }
+}
+
+@layer utilities {
+  .display {
+    font-family: var(--font-instrument-serif), Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Respect reduced-motion globally (§6). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
