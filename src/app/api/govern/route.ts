@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { scopeForSession } from "@/lib/gbrain";
 import { scopesForRole } from "@/lib/rbac";
 import { getDreamRun, listAudit } from "@/lib/store";
+import { getSecret, getValue, isGstackLive } from "@/lib/settings";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -27,14 +28,14 @@ export async function GET() {
       writeSource: scope.writeSource,
     },
     config: {
-      model: process.env.ANTHROPIC_MODEL ?? "claude-opus-4-8",
-      embeddingProvider: process.env.EMBEDDING_PROVIDER ?? "zeroentropy",
+      model: getValue("model") ?? "claude-opus-4-8",
+      embeddingProvider: getValue("embeddingProvider") ?? "zeroentropy",
       keys: {
-        anthropic: Boolean(process.env.ANTHROPIC_API_KEY),
-        zeroentropy: Boolean(process.env.ZEROENTROPY_API_KEY),
+        anthropic: Boolean(getSecret("anthropicApiKey")),
+        zeroentropy: Boolean(getSecret("zeroentropyApiKey")),
       },
-      gbrain: { connected: Boolean(process.env.GBRAIN_HTTP_URL && process.env.GBRAIN_SERVICE_TOKEN) },
-      gstackLive: process.env.GSTACK_LIVE === "true",
+      gbrain: { connected: Boolean(getValue("gbrainHttpUrl") && getSecret("gbrainServiceToken")) },
+      gstackLive: isGstackLive(),
     },
     cron: {
       dream: { lastRunAt: getDreamRun(session.user.id), nextScheduled: "tonight · 02:00 local" },

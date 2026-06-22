@@ -25,6 +25,9 @@ yarn-error.log*
 .env*.local
 .env.local
 
+# runtime config store (encrypted secrets, but never commit it)
+config.local.json
+
 # typescript
 *.tsbuildinfo
 

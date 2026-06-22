@@ -1,4 +1,5 @@
 import type { Session } from "next-auth";
+import { getSecret, getValue } from "@/lib/settings";
 import { MemoryBrain } from "./memory-client";
 import { McpBrain } from "./mcp-client";
 import type {
@@ -115,8 +116,8 @@ declare global {
 }
 
 function build(): GbrainClient {
-  const url = process.env.GBRAIN_HTTP_URL;
-  const token = process.env.GBRAIN_SERVICE_TOKEN;
+  const url = getValue("gbrainHttpUrl");
+  const token = getSecret("gbrainServiceToken");
   const memory = new MemoryBrain();
   if (url && token) {
     return new DegradingBrain(new McpBrain(url, token), memory);

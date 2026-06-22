@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Card, CardBody } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 
@@ -83,7 +84,13 @@ export function GovernClient() {
             <dt className="text-muted">gstack engine</dt>
             <dd className="flex items-center gap-2 text-ink"><Dot on={g.config.gstackLive} /> {g.config.gstackLive ? "live" : "simulated"}</dd>
           </dl>
-          <p className="mt-3 text-xs text-muted">Secrets live in server env only — never sent to the browser. Set them in .env.local or the deployment config.</p>
+          <p className="mt-3 text-xs text-muted">Secrets are write-only and never sent to the browser.</p>
+          <Link
+            href="/config"
+            className="mt-3 inline-block text-sm font-medium text-accent hover:text-accent-deep"
+          >
+            Edit configuration →
+          </Link>
         </CardBody>
       </Card>
 

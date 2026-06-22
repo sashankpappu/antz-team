@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { getGbrain, scopeForSession } from "@/lib/gbrain";
+import { getValue } from "@/lib/settings";
 import { audit } from "@/lib/store";
 import { NextResponse } from "next/server";
 
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
 
   const scope = scopeForSession(session);
   const result = await getGbrain().think(scope, question, {
-    model: process.env.ANTHROPIC_MODEL,
+    model: getValue("model"),
   });
 
   audit({
