@@ -77,6 +77,14 @@ export function listInbox(userId: string): InboxItem[] {
   return stores().inbox.filter((i) => i.userId === userId);
 }
 
+/** Advance an inbox item's workflow state (e.g. triaged → in motion). */
+export function setItemState(userId: string, id: string, state: InboxItem["state"]): InboxItem | null {
+  const item = stores().inbox.find((i) => i.id === id && i.userId === userId);
+  if (!item) return null;
+  item.state = state;
+  return item;
+}
+
 /** Append-only: every brain answer + state change is logged with its sources. */
 export function audit(entry: Omit<AuditEntry, "id" | "createdAt">): AuditEntry {
   const s = stores();

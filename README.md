@@ -7,10 +7,11 @@ decision — and let it flow: capture → the brain reads it first → triage (k
 do) → either it rests in memory and resurfaces later, or it spins a sprint that
 ships and writes the result back into the brain.
 
-> **Status:** Phase 1 (Capture + Brain recall) complete. Capture runs brain-first
-> recall inline; the Brain surface answers with citations + an honest gap note.
-> Phase 0 (Foundation) shipped the shell, design system, auth, and six surfaces.
-> See the build plan in [`CLAUDE.md`](./CLAUDE.md).
+> **Status:** Phase 2 (Triage + Execute) complete. Tap "Start it" on a DO item
+> (or start one on Execute) and watch a sprint move Think→Plan→…→Ship live over
+> SSE; the Think stage runs a brain-first lookup. Phase 1 wired brain-first
+> recall on Capture + the Brain Ask box; Phase 0 shipped the shell, design
+> system, auth, and six surfaces. See the build plan in [`CLAUDE.md`](./CLAUDE.md).
 
 ## The six surfaces (§4)
 
@@ -68,6 +69,8 @@ All secrets are **server-only**; nothing is exposed to the browser. See
 | `AUTH_DEV_MODE` | `true` enables one-click demo sign-in; set `false` anywhere shared |
 | `AUTH_MICROSOFT_ENTRA_ID_*` | Entra ID OAuth credentials (real sign-in) |
 | `GBRAIN_HTTP_URL` / `GBRAIN_SERVICE_TOKEN` | gbrain memory layer (Phase 1) |
+| `GSTACK_STEP_MS` | simulated sprint stage interval (default 1200ms) |
+| `GSTACK_LIVE` | `true` selects the live Agent-SDK gstack engine (needs key) |
 | `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` | model tier — default `claude-opus-4-8` |
 | `EMBEDDING_PROVIDER` | `zeroentropy` (default) · `openai` · `voyage` |
 | `DATABASE_URL` | Postgres + pgvector (Azure Database for PostgreSQL) |
@@ -109,6 +112,25 @@ No gold appears anywhere yet: it is reserved for decision forks (Phase 3).
 
 Runs out of the box with the built-in in-memory brain (seeded with the Alice /
 Acme example). Point it at a real gbrain for live synthesis — see below.
+
+## CEO demo script — Phase 2
+
+> Goal: "I tap 'Start it' on an idea and watch it move Think→Plan→Design without
+> me touching anything."
+
+1. On **Capture**, find a DO item in the inbox and tap **Start it** (or go to
+   **Execute** and start one directly, e.g. *"Draft the Acme pilot pricing page"*).
+2. The sprint appears on the **Execute** board under **Think** and advances
+   through Plan → Design → Build → Review → Test → Ship — live, no refresh
+   (Server-Sent Events). A green dot shows the stream is live.
+3. Click a sprint to see its **artifacts and log**. The first artifact is the
+   **brain-first recall** — Think looked the topic up in gbrain (with citations)
+   so the crew never re-solves what's already known.
+4. Start a second sprint — both run in parallel on the board.
+
+Sprints run on the simulated engine (set `GSTACK_STEP_MS` to speed up/slow down
+stage transitions). The live engine drives real gstack via the Claude Agent SDK
+behind the same `SprintEngine` interface, gated on `GSTACK_LIVE=true`.
 
 ## Running the real brain (gbrain)
 

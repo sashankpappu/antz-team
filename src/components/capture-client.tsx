@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardBody } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BrainAnswer, type AnswerView } from "@/components/brain-answer";
@@ -29,10 +30,29 @@ export function CaptureClient() {
   const [result, setResult] = useState<CaptureResult | null>(null);
   const [items, setItems] = useState<InboxItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [starting, setStarting] = useState<string | null>(null);
+  const router = useRouter();
 
   async function refreshInbox() {
     const res = await fetch("/api/inbox");
     if (res.ok) setItems((await res.json()).items ?? []);
+  }
+
+  async function startSprint(item: InboxItem) {
+    if (starting) return;
+    setStarting(item.id);
+    try {
+      const res = await fetch("/api/sprints", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: item.rawText.slice(0, 120), inboxItemId: item.id }),
+      });
+      if (!res.ok) throw new Error("could not start sprint");
+      router.push("/execute");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "could not start sprint");
+      setStarting(null);
+    }
   }
 
   useEffect(() => {
@@ -150,6 +170,19 @@ export function CaptureClient() {
                         {it.kind} · {it.state} · {it.sourceChannel}
                       </p>
                     </div>
+                    {it.state !== "motion" && (
+                      <Button
+                        variant="ghost"
+                        onClick={() => startSprint(it)}
+                        disabled={starting === it.id}
+                        className="shrink-0 px-3 py-1.5 text-xs"
+                      >
+                        {starting === it.id ? "Starting…" : "Start it"}
+                      </Button>
+                    )}
+                    {it.state === "motion" && (
+                      <span className="shrink-0 font-mono text-[11px] uppercase text-accent">in motion</span>
+                    )}
                   </CardBody>
                 </Card>
               </li>

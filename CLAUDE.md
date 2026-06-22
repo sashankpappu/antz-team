@@ -79,8 +79,11 @@ role-playing a non-technical exec, completing the scenario with zero terminal us
   brain-first recall; Ask/Think box with citations + gap note; raw-search toggle;
   idempotent captures; per-user brain scoping; append-only audit on every answer.
   *CEO: paste an Alice email → recall + open questions; ask → answer + sources + gaps.*
-- **Phase 2 — Triage + Execute.** Spin a gstack sprint via Agent SDK; live 7-stage
-  board; parallel sprints.
+- **Phase 2 — Triage + Execute** ✅ "Start it" spins a sprint (SprintEngine seam:
+  simulated engine now, live Agent-SDK engine gated on GSTACK_LIVE); live 7-stage
+  board over SSE; parallel sprints; sprint detail (artifacts + log); Think stage
+  runs the brain-first lookup (the integration contract). *CEO: tap Start it →
+  watch Think→Plan→Design… ship without touching anything.*
 - **Phase 3 — Decisions.** Forks as Decision cards w/ recommendations; resolve →
   sprint resumes. (Gold accent appears only here.)
 - **Phase 4 — Dream + Briefing.** Nightly enrichment; morning briefing;
@@ -134,6 +137,10 @@ src/
       mcp-client.ts           live client over MCP Streamable HTTP
       memory-client.ts        seeded in-memory brain + fallback (+ .test.ts)
       index.ts                factory + per-user scoping + degradation guard
+    gstack/
+      types.ts                SprintEngine contract + 7-stage model
+      simulated-engine.ts     timer-driven pipeline; Think = brain lookup (+ .test.ts)
+      index.ts                factory + GSTACK_LIVE seam for Agent-SDK engine
   components/
     app-shell.tsx             nav rail + top bar + bottom tabs
     nav-rail.tsx / bottom-tabs.tsx
@@ -150,6 +157,9 @@ src/
     api/
       auth/[...nextauth]/route.ts
       capture | think | search | inbox /route.ts   (BFF — thin orchestration)
+      sprints/route.ts         start + list sprints
+      sprints/[id]/route.ts    sprint detail (artifacts + log)
+      sprints/stream/route.ts  SSE — live stage transitions
 ```
 
 Local infra: `docker-compose.yml` (Postgres + pgvector + pinned `gbrain serve --http`).
