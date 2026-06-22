@@ -1,12 +1,23 @@
 import type {
   BrainFlag,
+  BrainGraph,
   BrainPage,
   BrainScopeCtx,
+  EntityType,
   GbrainClient,
+  GraphNode,
   PutPageInput,
   SearchHit,
   ThinkResult,
 } from "./types";
+
+function entityType(slug: string): EntityType {
+  if (slug.startsWith("people/")) return "person";
+  if (slug.startsWith("companies/")) return "company";
+  if (slug.startsWith("deals/")) return "deal";
+  if (slug.startsWith("projects/")) return "project";
+  return "note";
+}
 
 /**
  * In-memory brain — the zero-config local/test implementation of GbrainClient,
@@ -201,5 +212,22 @@ export class MemoryBrain implements GbrainClient {
       });
     }
     return out;
+  }
+
+  async graph(scope: BrainScopeCtx): Promise<BrainGraph> {
+    // Self-wiring: an edge exists where one readable page's body names another
+    // readable page's title. Scoping is enforced — only readable pages appear.
+    const pages = this.readable(scope);
+    const nodes: GraphNode[] = pages.map((p) => ({ id: p.slug, label: p.title, type: entityType(p.slug) }));
+    const edges: BrainGraph["edges"] = [];
+    for (const from of pages) {
+      for (const to of pages) {
+        if (from.slug === to.slug) continue;
+        if (from.body.toLowerCase().includes(to.title.toLowerCase())) {
+          edges.push({ from: from.slug, to: to.slug, type: "mentions" });
+        }
+      }
+    }
+    return { nodes, edges };
   }
 }

@@ -94,8 +94,12 @@ role-playing a non-technical exec, completing the scenario with zero terminal us
   flags; gbrain `flags()` surfaces contradictions + staleness (find_contradictions
   on the live client); dream cycle run-now + last-run/next-scheduled. *CEO: 7am
   one-screen read; it flags that two notes disagree.*
-- **Phase 5 — Graph + Govern.** Knowledge-graph view; team scoping; audit /
-  citations; cron visibility. Fuzz-test zero cross-user leaks.
+- **Phase 5 — Graph + Govern** ✅ Self-wiring knowledge graph (entities by type +
+  typed edges; click → trajectory), scoped to readable sources; Govern surfaces
+  access/scoping, masked config (model/embeddings/keys-present), cron visibility,
+  compliance, and the append-only audit trail. Cross-user fuzz gate: 200
+  randomized reads across search/think/graph/flags/getPage → zero B rows for A.
+  *CEO: "who works at Acme?" from the graph; a teammate cannot see private notes.*
 
 ## Definition of done (every phase)
 

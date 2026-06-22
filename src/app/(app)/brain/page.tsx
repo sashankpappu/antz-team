@@ -1,18 +1,15 @@
-import { Surface, Planned } from "@/components/surface";
+import { Surface } from "@/components/surface";
 import { AskBox } from "@/components/ask-box";
+import { KnowledgeGraph } from "@/components/knowledge-graph";
 
 export default function BrainPage() {
   return (
-    <Surface title="Brain" blurb="Ask what we already know." phase="Phase 1">
+    <Surface title="Brain" blurb="Ask what we already know." phase="Phase 1 · 5">
       <AskBox />
-      <div className="mt-8">
-        <Planned
-          points={[
-            "Knowledge graph: people, companies, deals, projects with typed edges (Phase 5).",
-            "Click an entity to see its trajectory over time.",
-          ]}
-        />
-      </div>
+      <section className="mt-10">
+        <h2 className="display mb-4 text-2xl text-ink">Knowledge graph</h2>
+        <KnowledgeGraph />
+      </section>
     </Surface>
   );
 }

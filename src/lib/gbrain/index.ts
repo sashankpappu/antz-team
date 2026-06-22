@@ -3,6 +3,7 @@ import { MemoryBrain } from "./memory-client";
 import { McpBrain } from "./mcp-client";
 import type {
   BrainFlag,
+  BrainGraph,
   BrainPage,
   BrainScopeCtx,
   GbrainClient,
@@ -11,7 +12,18 @@ import type {
   ThinkResult,
 } from "./types";
 
-export type { BrainScopeCtx, Citation, SearchHit, ThinkResult, BrainPage, BrainFlag } from "./types";
+export type {
+  BrainScopeCtx,
+  Citation,
+  SearchHit,
+  ThinkResult,
+  BrainPage,
+  BrainFlag,
+  BrainGraph,
+  GraphNode,
+  GraphEdge,
+  EntityType,
+} from "./types";
 
 /**
  * Derive a brain scope from the signed-in session (§5). Every brain read runs
@@ -83,6 +95,14 @@ class DegradingBrain implements GbrainClient {
       return await this.live.flags(scope);
     } catch {
       return this.fallback.flags(scope);
+    }
+  }
+
+  async graph(scope: BrainScopeCtx): Promise<BrainGraph> {
+    try {
+      return await this.live.graph(scope);
+    } catch {
+      return this.fallback.graph(scope);
     }
   }
 }

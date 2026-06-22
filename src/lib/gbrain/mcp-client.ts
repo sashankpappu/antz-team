@@ -2,9 +2,11 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import type {
   BrainFlag,
+  BrainGraph,
   BrainPage,
   BrainScopeCtx,
   Citation,
+  EntityType,
   GbrainClient,
   PutPageInput,
   SearchHit,
@@ -182,5 +184,24 @@ export class McpBrain implements GbrainClient {
       /* contradictions unavailable */
     }
     return out;
+  }
+
+  async graph(scope: BrainScopeCtx): Promise<BrainGraph> {
+    const raw = await this.callOp<{
+      nodes?: Array<{ id?: string; slug?: string; label?: string; title?: string; type?: string }>;
+      edges?: Array<{ from?: string; to?: string; type?: string }>;
+    }>("graph", { sources: scope.readSources });
+    return {
+      nodes: (raw.nodes ?? []).map((n) => ({
+        id: String(n.id ?? n.slug ?? ""),
+        label: String(n.label ?? n.title ?? ""),
+        type: (n.type as EntityType) ?? "note",
+      })),
+      edges: (raw.edges ?? []).map((e) => ({
+        from: String(e.from ?? ""),
+        to: String(e.to ?? ""),
+        type: String(e.type ?? "related"),
+      })),
+    };
   }
 }

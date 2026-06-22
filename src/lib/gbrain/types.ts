@@ -64,6 +64,23 @@ export interface BrainFlag {
   pageSlugs: string[];
 }
 
+export type EntityType = "person" | "company" | "deal" | "project" | "note";
+
+export interface GraphNode {
+  id: string; // page slug
+  label: string;
+  type: EntityType;
+}
+export interface GraphEdge {
+  from: string;
+  to: string;
+  type: string;
+}
+export interface BrainGraph {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
 export interface PutPageInput {
   title: string;
   body: string;
@@ -87,4 +104,6 @@ export interface GbrainClient {
   getPage(scope: BrainScopeCtx, slug: string): Promise<BrainPage | null>;
   /** Dream-cycle findings: contradictions + staleness (§4 Briefing flags). */
   flags(scope: BrainScopeCtx): Promise<BrainFlag[]>;
+  /** The self-wiring knowledge graph, scoped to the reader's sources (§4). */
+  graph(scope: BrainScopeCtx): Promise<BrainGraph>;
 }

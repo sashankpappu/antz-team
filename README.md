@@ -7,12 +7,11 @@ decision — and let it flow: capture → the brain reads it first → triage (k
 do) → either it rests in memory and resurfaces later, or it spins a sprint that
 ships and writes the result back into the brain.
 
-> **Status:** Phase 4 (Dream + Briefing) complete. A one-screen morning briefing
-> shows what shipped / is running / is holding, plus "what I'd watch"
-> (contradiction + staleness flags from the dream cycle); run the dream cycle on
-> demand. Earlier phases: human-only Decision forks, live 7-stage Execute board,
-> brain-first recall (Capture + Brain), the app shell + auth. See the build plan
-> in [`CLAUDE.md`](./CLAUDE.md).
+> **Status:** All six surfaces shipped (Phases 0–5). Capture + brain-first recall,
+> the Brain Ask box + knowledge graph, the live 7-stage Execute board, human-only
+> Decision forks, the Dream + Briefing screen, and Govern (scoping, masked config,
+> cron, audit). Cross-user isolation is fuzz-tested to zero leaks. See the build
+> plan in [`CLAUDE.md`](./CLAUDE.md).
 
 ## The six surfaces (§4)
 
@@ -161,6 +160,22 @@ behind the same `SprintEngine` interface, gated on `GSTACK_LIVE=true`.
 3. Tap **Run dream cycle now** to refresh enrichment; the last-run time updates.
    The nightly cron that runs this automatically becomes visible in Govern
    (Phase 5).
+
+## CEO demo script — Phase 5
+
+> Goal: "I ask 'who works at Acme?' and get a real answer from the graph. I add a
+> teammate and confirm they can't see my private notes."
+
+1. On **Brain**, scroll to **Knowledge graph**. Entities are grouped by type
+   (people / companies / deals). Click **Acme Corp** to see its connections —
+   Alice Johnson and the Acme partnership, wired by the brain itself.
+2. On **Govern**, see your role, gbrain scopes, and exactly which sources you
+   read vs. write; the masked config (model, embeddings, which keys are set —
+   never their values); scheduled jobs; compliance (DPDP / GDPR / SOC 2); and the
+   append-only audit trail with citations.
+3. Isolation is enforced at the data layer and proven by the cross-user fuzz test
+   (`npm test`): 200 randomized reads as one user never surface another user's
+   private pages across search / think / graph / flags / direct lookup.
 
 ## Running the real brain (gbrain)
 
