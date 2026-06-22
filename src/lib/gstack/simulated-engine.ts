@@ -1,6 +1,17 @@
 import { EventEmitter } from "node:events";
 import { randomUUID } from "node:crypto";
-import { STAGES, type Sprint, type SprintEngine, type SprintEvent, type Stage, type StartSprintOpts, type Artifact } from "./types";
+import {
+  STAGES,
+  type Sprint,
+  type SprintEngine,
+  type SprintEvent,
+  type Stage,
+  type StartSprintOpts,
+  type Artifact,
+  type Decision,
+  type DecisionResolution,
+  type DecisionType,
+} from "./types";
 
 /**
  * Simulated gstack engine — the zero-config local/test execution layer, and
@@ -35,10 +46,43 @@ function stageArtifact(stage: Stage, title: string): Omit<Artifact, "id" | "crea
   }
 }
 
+/** Build a fork at the Design stage. Security-flavored titles get a risk fork. */
+function buildDecision(sprint: Sprint): Omit<Decision, "id" | "createdAt"> {
+  const isSecurity = /\b(security|auth|login|secret|token|pii|risk|breach)\b/i.test(sprint.title);
+  if (isSecurity) {
+    const type: DecisionType = "security";
+    const patch = { id: "patch", label: "Apply the patch", detail: "Rotate the exposed token and add a scope check on the read path. Low blast radius." };
+    const defer = { id: "defer", label: "Defer to a follow-up", detail: "Ship now, track the hardening separately. Leaves a known gap." };
+    return {
+      sprintId: sprint.id,
+      userId: sprint.userId,
+      type,
+      summary: `A security fork surfaced while designing "${sprint.title}".`,
+      recommendation: "Apply the patch now — it's contained and closes a real read-path gap.",
+      options: [patch, defer],
+      recommendedOptionId: "patch",
+    };
+  }
+  const type: DecisionType = "taste";
+  const a = { id: "calm", label: "Direction A — calm", detail: "Single accent, generous whitespace; matches the design system." };
+  const b = { id: "bold", label: "Direction B — bold", detail: "Stronger color, denser layout; higher contrast, more chrome." };
+  return {
+    sprintId: sprint.id,
+    userId: sprint.userId,
+    type,
+    summary: `Two design finalists are ready for "${sprint.title}".`,
+    recommendation: "Direction A — it stays inside the calm-by-default system; bold would over-spend the one accent.",
+    options: [a, b],
+    recommendedOptionId: "calm",
+  };
+}
+
 export class SimulatedSprintEngine implements SprintEngine {
   readonly kind = "simulated" as const;
   private sprints = new Map<string, Sprint>();
   private running = new Map<string, Promise<Sprint | null>>();
+  private decisions = new Map<string, Decision>();
+  private resolvers = new Map<string, () => void>();
   private emitter = new EventEmitter();
 
   constructor(private readonly stepMs = STEP_MS) {
@@ -124,6 +168,36 @@ export class SimulatedSprintEngine implements SprintEngine {
     for (const stage of STAGES.slice(1) as Stage[]) {
       await delay(this.stepMs);
       sprint.stage = stage;
+
+      // Design stage raises a human-only fork; the sprint blocks until resolved.
+      if (stage === "design") {
+        const decision: Decision = {
+          ...buildDecision(sprint),
+          id: randomUUID(),
+          createdAt: new Date().toISOString(),
+        };
+        this.decisions.set(decision.id, decision);
+        sprint.status = "blocked";
+        this.touch(sprint, `Blocked on a ${decision.type} decision — needs you.`);
+        this.emitter.emit("event", { type: "decision", decision: structuredClone(decision) } satisfies SprintEvent);
+
+        await new Promise<void>((resolve) => this.resolvers.set(decision.id, resolve));
+        // Resumed: record the chosen direction as the design artifact.
+        const resolved = this.decisions.get(decision.id)!;
+        const chosen = resolved.options.find((o) => o.id === resolved.resolvedOptionId);
+        sprint.status = "running";
+        sprint.artifacts.push({
+          id: randomUUID(),
+          stage: "design",
+          kind: "design",
+          title: "Design (resolved)",
+          body: `${resolved.resolution}: ${chosen?.label ?? "as recommended"} — ${chosen?.detail ?? ""}`,
+          createdAt: new Date().toISOString(),
+        });
+        this.touch(sprint, `Decision resolved (${resolved.resolution}); sprint resumed.`);
+        continue;
+      }
+
       const a = stageArtifact(stage, sprint.title);
       sprint.artifacts.push({ ...a, id: randomUUID(), createdAt: new Date().toISOString() });
       this.touch(sprint, `Entered ${stage}.`);
@@ -132,5 +206,43 @@ export class SimulatedSprintEngine implements SprintEngine {
     sprint.status = "shipped";
     this.touch(sprint, "Shipped.");
     return sprint;
+  }
+
+  listDecisions(userId: string): Decision[] {
+    return [...this.decisions.values()]
+      .filter((d) => d.userId === userId)
+      .sort((a, b) => {
+        // Open forks first, then most-recent.
+        const ao = a.resolution ? 1 : 0;
+        const bo = b.resolution ? 1 : 0;
+        return ao - bo || b.createdAt.localeCompare(a.createdAt);
+      });
+  }
+
+  resolveDecision(
+    userId: string,
+    id: string,
+    resolution: DecisionResolution,
+    optionId?: string,
+  ): Decision | null {
+    const decision = this.decisions.get(id);
+    if (!decision || decision.userId !== userId || decision.resolution) return null;
+
+    // Reject keeps the recommendation off; approve/adjust pick an option.
+    decision.resolution = resolution;
+    decision.resolvedOptionId =
+      resolution === "reject"
+        ? undefined
+        : (optionId ?? decision.recommendedOptionId);
+    decision.resolvedAt = new Date().toISOString();
+    this.emitter.emit("event", { type: "decision", decision: structuredClone(decision) } satisfies SprintEvent);
+
+    // Resume the blocked sprint.
+    const resume = this.resolvers.get(id);
+    if (resume) {
+      this.resolvers.delete(id);
+      resume();
+    }
+    return decision;
   }
 }

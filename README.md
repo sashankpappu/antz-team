@@ -7,11 +7,12 @@ decision — and let it flow: capture → the brain reads it first → triage (k
 do) → either it rests in memory and resurfaces later, or it spins a sprint that
 ships and writes the result back into the brain.
 
-> **Status:** Phase 2 (Triage + Execute) complete. Tap "Start it" on a DO item
-> (or start one on Execute) and watch a sprint move Think→Plan→…→Ship live over
-> SSE; the Think stage runs a brain-first lookup. Phase 1 wired brain-first
-> recall on Capture + the Brain Ask box; Phase 0 shipped the shell, design
-> system, auth, and six surfaces. See the build plan in [`CLAUDE.md`](./CLAUDE.md).
+> **Status:** Phase 3 (Decisions) complete. Sprints pause at human-only forks
+> (taste / scope / risk / security); the Decisions surface shows the crew's
+> recommendation with one-tap Approve / Adjust / Reject, and resolving resumes
+> the sprint. Gold appears only here. Earlier phases: brain-first recall
+> (Capture + Brain), live 7-stage Execute board, the app shell + auth. See the
+> build plan in [`CLAUDE.md`](./CLAUDE.md).
 
 ## The six surfaces (§4)
 
@@ -131,6 +132,21 @@ Acme example). Point it at a real gbrain for live synthesis — see below.
 Sprints run on the simulated engine (set `GSTACK_STEP_MS` to speed up/slow down
 stage transitions). The live engine drives real gstack via the Claude Agent SDK
 behind the same `SprintEngine` interface, gated on `GSTACK_LIVE=true`.
+
+## CEO demo script — Phase 3
+
+> Goal: "Two design finalists are waiting. I tap one and it ships. A security
+> fork shows me the risk in plain English and I approve the patch."
+
+1. Start a sprint on **Execute** (e.g. *"Design the Acme pricing page"*). When it
+   reaches **Design** it goes **blocked**, and the nav shows a gold count on
+   **Decisions** — the one place gold ever appears.
+2. Open **Decisions**: a *taste* fork shows two design finalists with the crew's
+   recommendation in plain English. Tap **Approve** — the sprint resumes and
+   ships.
+3. Start a security-flavored sprint (e.g. *"Rotate the leaked auth token"*). Its
+   fork is a *security* decision explaining the risk and the patch; approve it
+   and the sprint continues.
 
 ## Running the real brain (gbrain)
 

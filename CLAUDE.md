@@ -84,8 +84,11 @@ role-playing a non-technical exec, completing the scenario with zero terminal us
   board over SSE; parallel sprints; sprint detail (artifacts + log); Think stage
   runs the brain-first lookup (the integration contract). *CEO: tap Start it →
   watch Think→Plan→Design… ship without touching anything.*
-- **Phase 3 — Decisions.** Forks as Decision cards w/ recommendations; resolve →
-  sprint resumes. (Gold accent appears only here.)
+- **Phase 3 — Decisions** ✅ Sprints block at a Design fork (taste / security);
+  Decisions surface shows the crew's recommendation + one-tap Approve/Adjust/
+  Reject; resolving resumes the sprint; nav gold badge = open fork count; forks
+  scoped per user. (Gold appears only here.) *CEO: two finalists waiting → tap →
+  ships; a security fork in plain English → approve the patch.*
 - **Phase 4 — Dream + Briefing.** Nightly enrichment; morning briefing;
   contradiction / staleness flags.
 - **Phase 5 — Graph + Govern.** Knowledge-graph view; team scoping; audit /

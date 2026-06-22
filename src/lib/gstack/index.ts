@@ -1,7 +1,17 @@
 import { SimulatedSprintEngine } from "./simulated-engine";
 import type { SprintEngine } from "./types";
 
-export type { Sprint, Stage, SprintEvent, Artifact, LogEntry } from "./types";
+export type {
+  Sprint,
+  Stage,
+  SprintEvent,
+  Artifact,
+  LogEntry,
+  Decision,
+  DecisionType,
+  DecisionResolution,
+  DecisionOption,
+} from "./types";
 export { STAGES } from "./types";
 
 /**

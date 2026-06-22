@@ -6,6 +6,33 @@ export type Stage = (typeof STAGES)[number];
 
 export type SprintStatus = "running" | "shipped" | "blocked";
 
+export type DecisionType = "taste" | "scope" | "risk" | "security";
+export type DecisionResolution = "approve" | "adjust" | "reject";
+
+export interface DecisionOption {
+  id: string;
+  label: string;
+  detail: string;
+}
+
+/** A human-only fork (§4). The crew recommends; the executive decides. */
+export interface Decision {
+  id: string;
+  sprintId: string;
+  userId: string;
+  type: DecisionType;
+  summary: string;
+  /** The crew's recommendation, in plain English. */
+  recommendation: string;
+  options: DecisionOption[];
+  /** Which option id the crew recommends (the default). */
+  recommendedOptionId: string;
+  createdAt: string;
+  resolution?: DecisionResolution;
+  resolvedOptionId?: string;
+  resolvedAt?: string;
+}
+
 export interface Artifact {
   id: string;
   stage: Stage;
@@ -39,7 +66,8 @@ export interface Sprint {
 /** Streamed to the Execute board over SSE. */
 export type SprintEvent =
   | { type: "snapshot"; sprints: Sprint[] }
-  | { type: "sprint"; sprint: Sprint };
+  | { type: "sprint"; sprint: Sprint }
+  | { type: "decision"; decision: Decision };
 
 export interface StartSprintOpts {
   userId: string;
@@ -64,4 +92,14 @@ export interface SprintEngine {
   on(listener: (e: SprintEvent) => void): () => void;
   /** Test/await helper: resolves when a sprint reaches a terminal state. */
   settle(userId: string, id: string): Promise<Sprint | null>;
+
+  /** Open + recently-resolved decision forks for a user. */
+  listDecisions(userId: string): Decision[];
+  /** Resolve a fork → the sprint resumes. */
+  resolveDecision(
+    userId: string,
+    id: string,
+    resolution: DecisionResolution,
+    optionId?: string,
+  ): Decision | null;
 }

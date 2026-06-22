@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { doSignOut } from "@/lib/auth-actions";
+import { getGstack } from "@/lib/gstack";
 import { NavRail } from "@/components/nav-rail";
 import { BottomTabs } from "@/components/bottom-tabs";
 import { LogOut } from "lucide-react";
@@ -12,7 +13,10 @@ import { LogOut } from "lucide-react";
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const session = await auth();
   const user = session?.user;
-  const needsCount = 0;
+  // The single gold signal: how many forks are waiting on the executive.
+  const needsCount = user
+    ? getGstack().listDecisions(user.id).filter((d) => !d.resolution).length
+    : 0;
 
   return (
     <div className="flex min-h-screen bg-paper">
