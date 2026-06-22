@@ -74,8 +74,11 @@ role-playing a non-technical exec, completing the scenario with zero terminal us
 
 - **Phase 0 — Foundation** ✅ Next.js + Tailwind + tokens + shadcn + Auth.js OAuth +
   app shell with the six surfaces. *CEO: one-click sign-in, calm home, no config file.*
-- **Phase 1 — Capture + Brain recall.** Wire gbrain over MCP; composer + signal
-  detector; inline brain-first recall; Ask/Think box with citations + gap note.
+- **Phase 1 — Capture + Brain recall** ✅ gbrain wired over MCP (live HTTP client +
+  in-memory fallback, degradation-guarded); composer + signal detector; inline
+  brain-first recall; Ask/Think box with citations + gap note; raw-search toggle;
+  idempotent captures; per-user brain scoping; append-only audit on every answer.
+  *CEO: paste an Alice email → recall + open questions; ask → answer + sources + gaps.*
 - **Phase 2 — Triage + Execute.** Spin a gstack sprint via Agent SDK; live 7-stage
   board; parallel sprints.
 - **Phase 3 — Decisions.** Forks as Decision cards w/ recommendations; resolve →
@@ -125,15 +128,28 @@ src/
     rbac.ts                   app role → gbrain scope mapping
     signal-detector.ts        deterministic know/do classifier (+ .test.ts)
     auth-actions.ts           sign-in / sign-out server actions
+    store.ts                  thin app state: inbox + append-only audit (+ .test.ts)
+    gbrain/
+      types.ts                GbrainClient contract (search/think/put_page…)
+      mcp-client.ts           live client over MCP Streamable HTTP
+      memory-client.ts        seeded in-memory brain + fallback (+ .test.ts)
+      index.ts                factory + per-user scoping + degradation guard
   components/
     app-shell.tsx             nav rail + top bar + bottom tabs
     nav-rail.tsx / bottom-tabs.tsx
     surface.tsx               shared surface frame + "Planned" placeholder
+    capture-client.tsx        composer + inline recall + inbox stream
+    ask-box.tsx               Brain Ask (think) + raw-search toggle
+    brain-answer.tsx          answer + citations + "what it doesn't know yet"
     ui/                       button, card
   app/
     login/page.tsx
     (app)/                    authenticated surfaces
       page.tsx                Capture (home)
       brain | execute | decisions | briefing | govern /page.tsx
-    api/auth/[...nextauth]/route.ts
+    api/
+      auth/[...nextauth]/route.ts
+      capture | think | search | inbox /route.ts   (BFF — thin orchestration)
 ```
+
+Local infra: `docker-compose.yml` (Postgres + pgvector + pinned `gbrain serve --http`).

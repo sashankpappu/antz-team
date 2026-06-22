@@ -1,0 +1,56 @@
+# Local Vidur infrastructure — Postgres + pgvector and the gbrain engine.
+#
+# This mirrors the production target (Azure Database for PostgreSQL + pgvector)
+# so the team-brain path is exercised from Phase 1. The Next.js app runs on the
+# host (`npm run dev`) and talks to gbrain over HTTP at localhost:8787.
+#
+#   1. cp .env.example .env.local  &&  fill ANTHROPIC_API_KEY + ZEROENTROPY_API_KEY
+#   2. docker compose up -d
+#   3. (first run) docker compose exec gbrain gbrain auth create vidur  -> copy token
+#      into GBRAIN_SERVICE_TOKEN in .env.local
+#   4. npm run dev
+#
+# gbrain is pinned to the commit validated during Phase 1 design (v0.42.52.0).
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: vidur
+      POSTGRES_PASSWORD: vidur
+      POSTGRES_DB: gbrain
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vidur -d gbrain"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  gbrain:
+    image: oven/bun:1.3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /app
+    # Pinned install of the validated gbrain release, then serve over HTTP.
+    command: >
+      sh -c "bun install -g github:garrytan/gbrain#v0.42.52.0 &&
+             gbrain init &&
+             gbrain serve --http --port 8787 --host 0.0.0.0"
+    environment:
+      DATABASE_URL: postgres://vidur:vidur@postgres:5432/gbrain
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-4-8}
+      ZEROENTROPY_API_KEY: ${ZEROENTROPY_API_KEY:-}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-zeroentropy}
+    ports:
+      - "8787:8787"
+    volumes:
+      - gbrainconfig:/root/.gbrain
+
+volumes:
+  pgdata:
+  gbrainconfig:

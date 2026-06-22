@@ -7,9 +7,10 @@ decision — and let it flow: capture → the brain reads it first → triage (k
 do) → either it rests in memory and resurfaces later, or it spins a sprint that
 ships and writes the result back into the brain.
 
-> **Status:** Phase 0 (Foundation) complete. The app shell, design system, auth,
-> and all six surfaces are scaffolded and runnable. See the build plan in
-> [`CLAUDE.md`](./CLAUDE.md).
+> **Status:** Phase 1 (Capture + Brain recall) complete. Capture runs brain-first
+> recall inline; the Brain surface answers with citations + an honest gap note.
+> Phase 0 (Foundation) shipped the shell, design system, auth, and six surfaces.
+> See the build plan in [`CLAUDE.md`](./CLAUDE.md).
 
 ## The six surfaces (§4)
 
@@ -86,6 +87,48 @@ All secrets are **server-only**; nothing is exposed to the browser. See
 6. Click the sign-out icon (top right) — you return to the sign-in screen.
 
 No gold appears anywhere yet: it is reserved for decision forks (Phase 3).
+
+## CEO demo script — Phase 1
+
+> Goal: "I paste an email about Alice and within seconds Vidur shows what we
+> already know about her and what's still open. I ask a question and get an
+> answer with sources, and it tells me what it's unsure of."
+
+1. On **Capture**, paste an email, e.g. *"From: alice@acme.com / Subject:
+   Partnership pricing — can we finalize the Acme pilot pricing this week?"* and
+   click **Hand it to Vidur**.
+2. Vidur classifies it (a chip shows kind · route · confidence) and, **before
+   storing it**, shows *Here's what you already know* — a synthesized recall with
+   numbered **Sources** and a **What the brain doesn't know yet** note (pricing
+   not finalized, legal review pending, SOC 2 scope undocumented…).
+3. The capture drops into the **Inbox** stream below. Paste it again — Vidur
+   recognizes the duplicate (idempotent capture).
+4. Go to **Brain**, ask *"What do we know about Alice at Acme and the deal?"* The
+   answer arrives with inline citations and the same honest gap note. Toggle
+   **Raw search** to see the underlying ranked pages.
+
+Runs out of the box with the built-in in-memory brain (seeded with the Alice /
+Acme example). Point it at a real gbrain for live synthesis — see below.
+
+## Running the real brain (gbrain)
+
+The architecture: gbrain runs as its **own service** (it's Bun-based, markdown +
+Postgres) and Vidur talks to it over MCP. We pin a validated release and run it
+containerized; the Vidur app stays a thin client. If the brain is unreachable,
+capture and recall **degrade gracefully** to the in-memory brain.
+
+```bash
+cp .env.example .env.local          # add ANTHROPIC_API_KEY + ZEROENTROPY_API_KEY
+docker compose up -d                # Postgres + pgvector + gbrain serve --http
+docker compose exec gbrain gbrain auth create vidur   # copy the token →
+#   GBRAIN_SERVICE_TOKEN=...  and  GBRAIN_HTTP_URL=http://localhost:8787  in .env.local
+npm run dev
+```
+
+With `GBRAIN_HTTP_URL` + `GBRAIN_SERVICE_TOKEN` set, Vidur uses the live engine
+(`search` / `think` / `put_page` over MCP); unset, it uses the in-memory brain.
+Each signed-in user maps to a gbrain login slice, and reads are scoped to that
+user's sources — the foundation for the Phase 5 zero-cross-user-leak fuzz test.
 
 ## Decisions locked (from §11)
 
