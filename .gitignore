@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+.env
+.env.local
+.env*.local
+
+# Local blob storage root (customer artifacts never belong in git)
+storage/
+.tmp/
+
+.DS_Store
+npm-debug.log*

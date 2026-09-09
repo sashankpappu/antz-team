@@ -1,0 +1,267 @@
+// Intake — the store is claims, not chat.
+//
+// A conversation is never the source of truth. Every statement becomes a Claim
+// with source, speaker, timestamp and confidence. Turns and Artifacts are
+// evidence we keep for provenance; the BRD is a render over Claims.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// The nine dimensions of the universal meta-ontology. Domain-agnostic:
+/// every automation request has all nine, whatever the industry.
+enum Dimension {
+  ACTORS
+  TRIGGERS
+  SYSTEMS
+  DATA
+  DECISION_RULES
+  EXCEPTIONS
+  HANDOFFS
+  VOLUMES
+  DONE_CRITERIA
+}
+
+enum Confidence {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ArtifactKind {
+  DECK
+  TRANSCRIPT
+  DOC
+  CHAT
+  AUDIO
+}
+
+enum WorkspaceStatus {
+  SEEDED
+  IN_SESSION
+  ABANDONED
+  HANDOFF_READY
+}
+
+enum GapStatus {
+  OPEN
+  ANSWERED
+  DEFERRED
+  OWNED
+}
+
+enum ConflictStatus {
+  OPEN
+  RESOLVED
+}
+
+enum TurnRole {
+  USER
+  ASSISTANT
+}
+
+enum TurnMedium {
+  VOICE
+  TEXT
+}
+
+model Workspace {
+  id         String          @id @default(cuid())
+  name       String
+  createdBy  String
+  shareToken String          @unique
+  status     WorkspaceStatus @default(SEEDED)
+
+  /// Inferred from the seeded artifacts and the first two turns, then reused to
+  /// pick the entry order through the ontology. A COO gets asked about handoffs
+  /// and volumes first; a finance head about approvals and controls.
+  inferredRole   String?
+  inferredDomain String?
+
+  /// Vocabulary harvested from the customer's own artifacts — their system
+  /// names, team names, process names. Never authored by us, never shipped as
+  /// an industry pack.
+  vocabulary Json @default("[]")
+
+  /// Gap-cache freshness. The interviewer reads the cache and answers
+  /// immediately; scoring refreshes this asynchronously after each turn.
+  gapsComputedAt DateTime?
+  overallPct     Int       @default(0)
+
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+
+  artifacts Artifact[]
+  claims    Claim[]
+  conflicts Conflict[]
+  gaps      Gap[]
+  turns     Turn[]
+  scores    Score[]
+
+  @@index([status])
+}
+
+model Artifact {
+  id          String       @id @default(cuid())
+  workspaceId String
+  kind        ArtifactKind
+  filename    String
+
+  /// Extracted plain text. Claims quote from this, so it is the provenance
+  /// anchor and outlives the original bytes when those are purged.
+  rawText String @db.Text
+
+  /// Key in the configured blob store (local blob or cloud blob — chosen in
+  /// config before the share link is sent). Null when the artifact arrived as
+  /// a paste and no original file exists.
+  storageKey String?
+
+  uploadedBy  String
+  uploadedAt  DateTime  @default(now())
+  extractedAt DateTime?
+
+  /// Raw-artifact retention horizon, stamped at upload from
+  /// ARTIFACT_RETENTION_DAYS. Derived claims are not covered by this.
+  purgeAfter DateTime?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  claims    Claim[]
+
+  @@index([workspaceId])
+  @@index([purgeAfter])
+}
+
+model Claim {
+  id          String @id @default(cuid())
+  workspaceId String
+
+  /// dimension + slot map to the meta-ontology. This mapping is what makes
+  /// scoring possible, so it is enforced at write time (see lib/claims/store.ts).
+  dimension Dimension
+  slot      String
+
+  content String @db.Text
+
+  /// Verbatim supporting quote from the artifact or turn. An extraction that
+  /// cannot quote its evidence is an inference, and inferences are LOW.
+  quote String? @db.Text
+
+  sourceArtifactId String?
+  sourceTurnId     String?
+  speaker          String?
+  confidence       Confidence
+
+  /// Set ONLY by an explicit conflict resolution. Never set by an import or a
+  /// later contradicting statement — new input raises a Conflict instead.
+  supersededById String? @unique
+
+  createdAt DateTime @default(now())
+
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  sourceArtifact Artifact? @relation(fields: [sourceArtifactId], references: [id], onDelete: SetNull)
+  sourceTurn     Turn?     @relation(fields: [sourceTurnId], references: [id], onDelete: SetNull)
+
+  supersededBy Claim? @relation("Supersedes", fields: [supersededById], references: [id], onDelete: SetNull)
+  supersedes   Claim? @relation("Supersedes")
+
+  conflictsAsA Conflict[] @relation("ConflictClaimA")
+  conflictsAsB Conflict[] @relation("ConflictClaimB")
+
+  @@index([workspaceId, dimension, slot])
+  @@index([workspaceId, confidence])
+}
+
+model Conflict {
+  id          String         @id @default(cuid())
+  workspaceId String
+  claimAId    String
+  claimBId    String
+  status      ConflictStatus @default(OPEN)
+  resolution  String?        @db.Text
+
+  /// Why the two claims were judged to contradict. Shown in the render so a
+  /// reader can disagree with the machine.
+  rationale String? @db.Text
+
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  claimA    Claim     @relation("ConflictClaimA", fields: [claimAId], references: [id], onDelete: Cascade)
+  claimB    Claim     @relation("ConflictClaimB", fields: [claimBId], references: [id], onDelete: Cascade)
+
+  @@unique([claimAId, claimBId])
+  @@index([workspaceId, status])
+}
+
+model Gap {
+  id          String    @id @default(cuid())
+  workspaceId String
+  dimension   Dimension
+  slot        String
+
+  /// Pre-generated so the interviewer never waits on the completeness engine.
+  questionText String @db.Text
+
+  status    GapStatus @default(OPEN)
+  ownerName String?
+  ownerRole String?
+  blocking  Boolean   @default(false)
+
+  /// Never ask two questions about the same slot in one session unless the
+  /// answer was explicitly ambiguous — this is the counter that enforces it.
+  askedCount Int @default(0)
+
+  /// Cache ordering from the ranking algorithm. Lower is asked sooner.
+  rank  Int   @default(0)
+  score Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, dimension, slot])
+  @@index([workspaceId, status, rank])
+}
+
+model Turn {
+  id          String     @id @default(cuid())
+  workspaceId String
+  role        TurnRole
+  medium      TurnMedium
+  content     String     @db.Text
+
+  /// The skill in play when this turn happened (/interview, /gaps, ...).
+  command String?
+
+  /// Slot this turn was asked about, so an answer can be attributed back to
+  /// the gap that prompted it.
+  askedDimension Dimension?
+  askedSlot      String?
+
+  createdAt DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  claims    Claim[]
+
+  @@index([workspaceId, createdAt])
+}
+
+model Score {
+  id          String    @id @default(cuid())
+  workspaceId String
+  dimension   Dimension
+  pct         Int
+  computedAt  DateTime  @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, dimension])
+  @@index([workspaceId])
+}

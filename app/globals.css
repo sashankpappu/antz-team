@@ -1,0 +1,75 @@
+@import 'tailwindcss';
+
+/*
+ * The exec is senior, not technical, and impatient. The interface has one job
+ * per screen: read the question, answer it. Everything else is secondary and
+ * looks it.
+ */
+@theme {
+  --color-ink: #14161a;
+  --color-ink-soft: #5b6270;
+  --color-paper: #fbfbf9;
+  --color-line: #e3e2dd;
+  --color-accent: #1f5f4f;
+  --color-flag: #a8452b;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Markdown renders (BRD, gaps, summary) shown inside the session. */
+.doc {
+  line-height: 1.65;
+}
+.doc h1 { font-size: 1.6rem; font-weight: 600; margin: 1.4rem 0 0.6rem; }
+.doc h2 { font-size: 1.15rem; font-weight: 600; margin: 1.6rem 0 0.5rem; }
+.doc h3 { font-size: 1rem; font-weight: 600; margin: 1.2rem 0 0.4rem; }
+.doc p { margin: 0.6rem 0; }
+.doc ul { margin: 0.6rem 0; padding-left: 1.2rem; list-style: disc; }
+.doc li { margin: 0.2rem 0; }
+.doc hr { margin: 1.6rem 0; border-color: var(--color-line); }
+.doc blockquote {
+  margin: 0.8rem 0;
+  padding: 0.5rem 0.9rem;
+  border-left: 3px solid var(--color-line);
+  color: var(--color-ink-soft);
+}
+.doc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.9rem 0;
+  font-size: 0.875rem;
+  display: block;
+  overflow-x: auto;
+}
+.doc th, .doc td {
+  border: 1px solid var(--color-line);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+.doc th { background: #f4f3ef; font-weight: 600; }
+.doc code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  background: #f1f0ec;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+}
+.doc pre {
+  margin: 0.9rem 0;
+  padding: 0.9rem;
+  background: #f4f3ef;
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.8rem;
+}
+.doc pre code { background: none; padding: 0; }
